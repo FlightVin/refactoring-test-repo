@@ -20,13 +20,12 @@ public abstract class DbOpenHelper {
     private final SqlStatementLogger sqlStatementLogger;
     private final List<Exception> exceptions = new ArrayList<>();
     private Formatter formatter;
-    private Statement stmt;
 
     public DbOpenHelper(ServiceRegistry serviceRegistry) throws HibernateException {
         final JdbcServices jdbcServices = serviceRegistry.getService(JdbcServices.class);
         connectionHelper = new SuppliedConnectionProviderConnectionHelper(jdbcServices.getConnectionProvider());
         sqlStatementLogger = jdbcServices.getSqlStatementLogger();
-        formatter = (sqlStatementLogger.isFormat() ? FormatStyle.DDL : FormatStyle.NONE).getFormatter();
+        formatter = sqlStatementLogger.isFormat() ? FormatStyle.DDL.getFormatter() : FormatStyle.NONE.getFormatter();
     }
 
     public void open() {
@@ -38,9 +37,7 @@ public abstract class DbOpenHelper {
         try {
             connectionHelper.prepare(true);
             connection = connectionHelper.getConnection();
-
             Integer oldVersion = getOldVersion(connection);
-
             // Continue with other logic
         } catch (SQLException sqle) {
             exceptions.add(sqle);
