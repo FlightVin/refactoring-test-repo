@@ -4,7 +4,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import org.hibernate.HibernateException;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
@@ -18,11 +17,10 @@ public abstract class DbOpenHelper {
     private static final Logger log = LoggerFactory.getLogger(DbOpenHelper.class);
     private final ConnectionHelper connectionHelper;
     private final SqlStatementLogger sqlStatementLogger;
-    private final List<Exception> exceptions = new ArrayList<>();
     private Formatter formatter;
     private Statement stmt;
 
-    public DbOpenHelper(ServiceRegistry serviceRegistry) throws HibernateException {
+    public DbOpenHelper(ServiceRegistry serviceRegistry) {
         final JdbcServices jdbcServices = serviceRegistry.getService(JdbcServices.class);
         connectionHelper = new SuppliedConnectionProviderConnectionHelper(jdbcServices.getConnectionProvider());
         sqlStatementLogger = jdbcServices.getSqlStatementLogger();
@@ -32,22 +30,12 @@ public abstract class DbOpenHelper {
     public void open() {
         log.info("Opening database and executing incremental updates");
 
-        Connection connection = null;
-        exceptions.clear();
-
-        try {
-            connectionHelper.prepare(true);
-            connection = connectionHelper.getConnection();
-
+        try (Connection connection = connectionHelper.getConnection()) {
             Integer oldVersion = getOldVersion(connection);
-
             // Continue with other logic
         } catch (SQLException sqle) {
-            exceptions.add(sqle);
             log.error("Unable to get database metadata", sqle);
             // Handle the exception
-        } finally {
-            closeConnection(connection);
         }
     }
 
@@ -60,15 +48,5 @@ public abstract class DbOpenHelper {
             }
         }
         return null;
-    }
-
-    private void closeConnection(Connection connection) {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                log.error("Error closing connection", e);
-            }
-        }
     }
 }
