@@ -26,7 +26,7 @@ public abstract class DbOpenHelper {
         final JdbcServices jdbcServices = serviceRegistry.getService(JdbcServices.class);
         connectionHelper = new SuppliedConnectionProviderConnectionHelper(jdbcServices.getConnectionProvider());
         sqlStatementLogger = jdbcServices.getSqlStatementLogger();
-        formatter = (sqlStatementLogger.isFormat() ? FormatStyle.DDL : FormatStyle.NONE).getFormatter();
+        formatter = sqlStatementLogger.isFormat() ? FormatStyle.DDL.getFormatter() : FormatStyle.NONE.getFormatter();
     }
 
     public void open() {
@@ -52,8 +52,8 @@ public abstract class DbOpenHelper {
     }
 
     private Integer getOldVersion(Connection connection) throws SQLException {
-        try (Statement stmt = connection.createStatement()) {
-            ResultSet result = stmt.executeQuery("select c.CFG_VALUE_C from T_CONFIG c where c.CFG_ID_C='DB_VERSION'");
+        try (Statement statement = connection.createStatement()) {
+            ResultSet result = statement.executeQuery("select c.CFG_VALUE_C from T_CONFIG c where c.CFG_ID_C='DB_VERSION'");
             if (result.next()) {
                 String oldVersionStr = result.getString(1);
                 return Integer.parseInt(oldVersionStr);
