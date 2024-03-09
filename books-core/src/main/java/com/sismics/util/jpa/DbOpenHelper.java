@@ -20,7 +20,6 @@ public abstract class DbOpenHelper {
     private final SqlStatementLogger sqlStatementLogger;
     private final List<Exception> exceptions = new ArrayList<>();
     private Formatter formatter;
-    private Statement stmt;
 
     public DbOpenHelper(ServiceRegistry serviceRegistry) throws HibernateException {
         final JdbcServices jdbcServices = serviceRegistry.getService(JdbcServices.class);
