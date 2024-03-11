@@ -20,7 +20,6 @@ public abstract class DbOpenHelper {
     private final SqlStatementLogger sqlStatementLogger;
     private final List<Exception> exceptions = new ArrayList<>();
     private Formatter formatter;
-    private Statement stmt;
 
     public DbOpenHelper(ServiceRegistry serviceRegistry) throws HibernateException {
         final JdbcServices jdbcServices = serviceRegistry.getService(JdbcServices.class);
@@ -43,9 +42,7 @@ public abstract class DbOpenHelper {
 
             // Continue with other logic
         } catch (SQLException sqle) {
-            exceptions.add(sqle);
-            log.error("Unable to get database metadata", sqle);
-            // Handle the exception
+            handleException(sqle, "Unable to get database metadata");
         } finally {
             closeConnection(connection);
         }
@@ -67,8 +64,13 @@ public abstract class DbOpenHelper {
             try {
                 connection.close();
             } catch (SQLException e) {
-                log.error("Error closing connection", e);
+                handleException(e, "Error closing connection");
             }
         }
+    }
+
+    private void handleException(Exception e, String errorMessage) {
+        exceptions.add(e);
+        log.error(errorMessage, e);
     }
 }
