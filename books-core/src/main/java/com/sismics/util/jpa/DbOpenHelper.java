@@ -19,35 +19,23 @@ public abstract class DbOpenHelper {
     private final ConnectionHelper connectionHelper;
     private final SqlStatementLogger sqlStatementLogger;
     private final List<Exception> exceptions = new ArrayList<>();
-    private Formatter formatter;
-    private Statement stmt;
 
     public DbOpenHelper(ServiceRegistry serviceRegistry) throws HibernateException {
         final JdbcServices jdbcServices = serviceRegistry.getService(JdbcServices.class);
         connectionHelper = new SuppliedConnectionProviderConnectionHelper(jdbcServices.getConnectionProvider());
         sqlStatementLogger = jdbcServices.getSqlStatementLogger();
-        formatter = (sqlStatementLogger.isFormat() ? FormatStyle.DDL : FormatStyle.NONE).getFormatter();
     }
 
     public void open() {
         log.info("Opening database and executing incremental updates");
 
-        Connection connection = null;
-        exceptions.clear();
-
-        try {
-            connectionHelper.prepare(true);
-            connection = connectionHelper.getConnection();
-
+        try (Connection connection = connectionHelper.prepare(true)) {
             Integer oldVersion = getOldVersion(connection);
-
             // Continue with other logic
         } catch (SQLException sqle) {
             exceptions.add(sqle);
             log.error("Unable to get database metadata", sqle);
             // Handle the exception
-        } finally {
-            closeConnection(connection);
         }
     }
 
@@ -60,15 +48,5 @@ public abstract class DbOpenHelper {
             }
         }
         return null;
-    }
-
-    private void closeConnection(Connection connection) {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                log.error("Error closing connection", e);
-            }
-        }
     }
 }
