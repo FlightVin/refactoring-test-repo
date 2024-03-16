@@ -20,7 +20,6 @@ public abstract class DbOpenHelper {
     private final SqlStatementLogger sqlStatementLogger;
     private final List<Exception> exceptions = new ArrayList<>();
     private Formatter formatter;
-    private Statement stmt;
 
     public DbOpenHelper(ServiceRegistry serviceRegistry) throws HibernateException {
         final JdbcServices jdbcServices = serviceRegistry.getService(JdbcServices.class);
@@ -42,9 +41,9 @@ public abstract class DbOpenHelper {
             Integer oldVersion = getOldVersion(connection);
 
             // Continue with other logic
-        } catch (SQLException sqle) {
-            exceptions.add(sqle);
-            log.error("Unable to get database metadata", sqle);
+        } catch (SQLException e) {
+            exceptions.add(e);
+            log.error("Unable to get database metadata", e);
             // Handle the exception
         } finally {
             closeConnection(connection);
@@ -52,8 +51,8 @@ public abstract class DbOpenHelper {
     }
 
     private Integer getOldVersion(Connection connection) throws SQLException {
-        try (Statement stmt = connection.createStatement()) {
-            ResultSet result = stmt.executeQuery("select c.CFG_VALUE_C from T_CONFIG c where c.CFG_ID_C='DB_VERSION'");
+        try (Statement statement = connection.createStatement()) {
+            ResultSet result = statement.executeQuery("select c.CFG_VALUE_C from T_CONFIG c where c.CFG_ID_C='DB_VERSION'");
             if (result.next()) {
                 String oldVersionStr = result.getString(1);
                 return Integer.parseInt(oldVersionStr);
