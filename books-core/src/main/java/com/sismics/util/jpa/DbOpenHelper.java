@@ -31,16 +31,12 @@ public abstract class DbOpenHelper {
 
     public void open() {
         log.info("Opening database and executing incremental updates");
-
         Connection connection = null;
         exceptions.clear();
-
         try {
             connectionHelper.prepare(true);
             connection = connectionHelper.getConnection();
-
             Integer oldVersion = getOldVersion(connection);
-
             // Continue with other logic
         } catch (SQLException sqle) {
             exceptions.add(sqle);
