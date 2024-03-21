@@ -31,21 +31,16 @@ public abstract class DbOpenHelper {
 
     public void open() {
         log.info("Opening database and executing incremental updates");
-
         Connection connection = null;
         exceptions.clear();
-
+        
         try {
             connectionHelper.prepare(true);
             connection = connectionHelper.getConnection();
-
             Integer oldVersion = getOldVersion(connection);
-
             // Continue with other logic
         } catch (SQLException sqle) {
-            exceptions.add(sqle);
-            log.error("Unable to get database metadata", sqle);
-            // Handle the exception
+            handleSQLException(sqle);
         } finally {
             closeConnection(connection);
         }
@@ -70,5 +65,11 @@ public abstract class DbOpenHelper {
                 log.error("Error closing connection", e);
             }
         }
+    }
+
+    private void handleSQLException(SQLException sqle) {
+        exceptions.add(sqle);
+        log.error("Unable to get database metadata", sqle);
+        // Handle the exception
     }
 }
