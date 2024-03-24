@@ -19,8 +19,7 @@ public abstract class DbOpenHelper {
     private final ConnectionHelper connectionHelper;
     private final SqlStatementLogger sqlStatementLogger;
     private final List<Exception> exceptions = new ArrayList<>();
-    private Formatter formatter;
-    private Statement stmt;
+    private final Formatter formatter;
 
     public DbOpenHelper(ServiceRegistry serviceRegistry) throws HibernateException {
         final JdbcServices jdbcServices = serviceRegistry.getService(JdbcServices.class);
@@ -58,6 +57,8 @@ public abstract class DbOpenHelper {
                 String oldVersionStr = result.getString(1);
                 return Integer.parseInt(oldVersionStr);
             }
+        } catch (SQLException e) {
+            log.error("Error executing query to get old version", e);
         }
         return null;
     }
